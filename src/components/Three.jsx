@@ -1,44 +1,61 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-
-import BoxComponent from './BoxComponent'
 import { Physics } from '@react-three/rapier'
 
+import { getSavedCamPos } from '../helpers'
+
+import BoxComponent from './BoxComponent'
+import CameraHelperButtons from './CameraHelperButtons'
+
+
 const Three = () => {
+    const [height, setHeight] = useState(0)
     const camRef = useRef(null)
     const gridRef = useRef(null)
     const controlsRef = useRef(null)
 
-    const [forceUpdate, setForceUpdate] = useState(1)
+    const domRef = useRef(null)
+    
+    const domId = `canvasContainer`
 
-    const update = () => {
-        setForceUpdate((prev) => prev + 1)
-    }
-
+    const savedCamPos = getSavedCamPos()
+    console.log({ savedCamPos})
+    const cp = JSON.parse(getSavedCamPos())
+    
+    const cameraPos = [cp.x,cp.y,cp.z]
 
     useEffect(() => {
-        const cam = camRef.current;
-        if(gridRef.current && cam) {
-            console.log(`yeah its here`)
-            gridRef.current.position.y = 0
-            cam.position.set(120, 5, -40);
-        }
-    }, [forceUpdate])
+        const el = domRef.current
+        const parent = el
+
+        const parentHeight = parent.clientHeight
+        const parentChildren = Array.from(parent.childNodes)
+
+        const domIndex = Array.from(parentChildren).findIndex(item => item.id === domId)
+        let nonCanvasHeight = 0
+        parentChildren.forEach((item, index) => {
+            if(index !== domIndex) {
+                nonCanvasHeight += item.clientHeight
+            }
+        })
+        
+        setHeight(parentHeight - nonCanvasHeight)
+    }, [])
 
     return (
-        <div className="w-full h-full">
-            <Canvas className="h-full">
-                <PerspectiveCamera makeDefault ref={camRef}/>
+        <div className="w-full h-full" ref={domRef}>
+            <Canvas className="h-full" style={{height}}>
+                <PerspectiveCamera makeDefault position={cameraPos} ref={camRef}/>
                 <directionalLight color="white" position={[0, 0, 5]} />
                 <directionalLight color="white" position={[0, 5, 0]} />
                 <Physics gravity={[0, -90.81, 0]}>
-                    <BoxComponent update={update} gravity={true} />
-                    <BoxComponent update={update} gravity={false} initPos={[0,-5,0]} />
-                    <BoxComponent update={update} gravity={false} initPos={[20,0,0]} />
+                    <BoxComponent gravity={true} />
+                    <BoxComponent gravity={false} initPos={[0,-5,0]} />
+                    <BoxComponent gravity={false} initPos={[20,0,0]} />
                 </Physics>
                 
-                <OrbitControls ref={controlsRef} autoRotateSpeed={0.2} autoRotate makeDefault />
+                <OrbitControls ref={controlsRef} makeDefault />
                 <gridHelper
                     ref={gridRef}
                     args={[10000, 100, '#000000', '#cccccc']}
@@ -46,6 +63,7 @@ const Three = () => {
                     rotation={[0, -Math.PI / 2, 0]}
                     />
             </Canvas>
+            <CameraHelperButtons enabled={['getCurrentCamPos', 'updateSavedCamPos']} camRef={camRef} />
         </div>
     );
     }
