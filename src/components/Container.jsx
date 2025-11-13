@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 
-const Container = ({ initPos }) => {
+const Container = ({ initPos, name, items }) => {
     const  meshRef = useRef()
     const bodyRef = useRef()
 
@@ -12,17 +12,11 @@ const Container = ({ initPos }) => {
         // }
     })
 
-    // useEffect(() => {
-    //     if(bodyRef.current) {
-    //         console.log(bodyRef.current)
-    //         // bodyRef.current.object.name = `container`
-    //     }
-    // }, [bodyRef])
 
     return (
         
-        <RigidBody ref={bodyRef} gravityScale={0} linearDamping={4} position={initPos} >
-            <mesh ref={meshRef} name={`container`}>
+        <RigidBody ref={bodyRef} gravityScale={0} type="fixed" position={initPos} >
+            <mesh ref={meshRef} name={`container--${name}`}>
                 <boxGeometry args={[100,1,1000]}/>
                 <meshStandardMaterial color="orange" />
             </mesh>

@@ -6,6 +6,7 @@ const BoxComponent = ({ initPos, gravity, mouseDown }) => {
     const  meshRef = useRef()
     const bodyRef = useRef()
 
+    // console.log({ initPos})
     // useFrame(() => {
     //     if(meshRef.current) {
     //         meshRef.current.rotation.z += 0.01
@@ -13,7 +14,7 @@ const BoxComponent = ({ initPos, gravity, mouseDown }) => {
     // })
 
     const onMouseDown = () => {
-        mouseDown(bodyRef)
+        mouseDown(bodyRef, meshRef)
     }
 
     const hasGravity = gravity ? 1 : 0

@@ -1,11 +1,12 @@
 
-import React, { useRef, useEffect, useMemo } from 'react'
+import React, { useRef, useEffect, useMemo, useState } from 'react'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
 import { dragLoop } from '../helpers/drag'
+import { evenlySpace } from '../helpers/space'
 import BoxComponent from './BoxComponent'
 import Container from './Container'
 import MouseLayer from './MouseLayer'
@@ -16,51 +17,83 @@ const Scene = ({ cameraPos, camRef }) => {
     const gridRef = useRef(null)
     const controlsRef = useRef(null)
     const isDraggingRef = useRef(false)
-    const activeItemRef = useRef(null)
+    const activeBodyRef = useRef(null)
+    const activeMeshRef = useRef(null)
     // const state = useThree()
     const containersRef = useRef([])
-    // const raycasterRef = useRef(new THREE.Raycaster())
+    const draggingStateRef = useRef(null)
+
+    // const [letters, setLetters] = useState('1234'.split(''))
+    // const [operators, setOperators] = useState('()+-x'.split(''))
+    // const [solutions, setSolutions] = useState([])
+    const [game, setGame] = useState({
+        letters: '1234',
+        operators: '()+-x',
+        solutions: ''
+    }) 
+
+    const containers = [
+        { name: `letters`, pos: [500,0,0], color: `white`},
+        { name: `operators`, pos: [0,0,0], color: `white` },
+        { name: `solutions`, pos: [-500,0,0], color: `white`}
+    ] 
+
     
+    const letters = evenlySpace({height: 500, x: -250, y: 250, width: 500, array: game.letters.split('')})
+    const operators = evenlySpace({height: 0, x: -250, y: 250, width: 500, array: game.operators.split('')})
+    const solutions = evenlySpace({height: -500, x: -250, y: 250, width: 500, array: game.solutions.split('')})
+    const boxes = [...letters, ...operators, ...solutions]
+
 
     const onDragRotateCam = false
     // const onDragRotateCam = true
 
-
-    const boxes = [
-        { pos: [0,10,-100] },
-        { pos: [0,10,100] }
-    ]
-
-    const containers = [
-        { name: `letters`, pos: [0,0,0], color: `white` },
-        { name: `operators`, pos: [500,0,0], color: `white`}
-    ] 
-    // containers.forEach(item => containersRef.push(null))
     containersRef.current = Array.from(containers, () => null)
     console.log(containersRef.current)
 
     const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,1,0), -500), [])
-    // const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,0,1), 0), [])
 
 
     useEffect(() => {
         const handlePointerUp =  () => {   
             isDraggingRef.current = false
+            console.log(draggingStateRef.current)
         }
         window.addEventListener('pointerup', handlePointerUp)
         return () => window.removeEventListener('pointerup', handlePointerUp)
     }, [])
 
-    const grabItem = (ref) => {
+    const grabItem = (bodyRef, meshRef) => {
         isDraggingRef.current = true
-        activeItemRef.current = ref.current
+        activeBodyRef.current = bodyRef.current
+        activeMeshRef.current = meshRef.current
 
+        console.log({bodyRef, meshRef})
+
+    }
+
+    const updateFn = (draggingRes) => {
+        console.log(draggingRes)
+        if (draggingRes.isOverlapping) {
+            const updatedGame = {
+                ...game,
+                [draggingRes.name]: game[draggingRes.name] + ' '
+            }
+            console.log({ updatedGame})
+            // setGame(updatedGame)
+        } else {
+            const updatedGame = Object.fromEntries(
+                Object.entries(game).map(([key, val]) => [key, val.replace(' ', '')])
+            )
+            // setGame(updatedGame)
+        }
+        draggingStateRef.current = draggingRes
     }
 
     useFrame(({ scene, camera, raycaster, pointer, viewport}) => {
         if(isDraggingRef.current) {
-            // console.log({ viewport  })
-            dragLoop({scene, camera, pointer, plane, raycaster, viewport, body: activeItemRef.current})
+            dragLoop({ scene, camera, pointer, plane, raycaster, viewport, body: activeBodyRef.current, mesh: activeMeshRef.current, updateFn })
+            // console.log(dragRes)
         }
     })
 
