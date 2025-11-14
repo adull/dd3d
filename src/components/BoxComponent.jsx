@@ -11,23 +11,36 @@ const BoxComponent = ({ item, gravity, mouseDown, dragSignal }) => {
 
     useFrame(() => {
         const signal = dragSignal.current
-        if(signal?.name === item.currentContainer) {
+        // console.log({signal})
+        
+        if(signal?.name === item.currentContainer && item.id !== signal.currBox) {
             // console.log({ item })
             const body = bodyRef.current
             const curr = body.translation()
 
-            const isBefore = item.index < signal.draggedIndex
+            const isBefore = item.index > signal.hoveredIndex
 
-            const { x: bx } = bodyRef.current.translation()
+            const { x: bx, y: by, z: bz } = bodyRef.current.translation()
 
             const offset = isBefore ? -0.5 : 0.5
 
-            const targetX = bx + offset;
+            // const targetX = bx + offset;
+            // const targetY = by + offset
+            const targetZ = bz + offset
 
-            const newX = THREE.MathUtils.lerp(curr.x, targetX, 0.1)
-            const newPos = { x: newX, y: curr.y, z: curr.z }
 
-            body.setNextKinematicTranslation(newPos);
+            // const newX = THREE.MathUtils.lerp(curr.x, targetX, 0.1)
+            
+            // const dx = targetX - curr.x;
+            // const dy = targetY - curr.y
+            const dz = targetZ - curr.z
+            // body.setLinvel({ x: 0, y: 400 * dy, z: 0 });
+            body.setLinvel({ x: 0, y: 0, z: 40 * dz });
+
+
+
+
+            // body.setNextKinematicTranslation(newPos);
 
 
 

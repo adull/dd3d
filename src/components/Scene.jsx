@@ -78,8 +78,6 @@ const Scene = ({ cameraPos, camRef }) => {
     const updateFn = (draggingRes) => {
         console.log(draggingRes)
         dragSignalRef.current = draggingRes
-        // const relevantBoxes = boxes.filter(item => item.currentContainer === draggingRes.name).filter(item => item.id !== draggingRes.currBox)
-        // console.log({ relevantBoxes})
     }
 
     useFrame(({ scene, camera, raycaster, pointer, viewport}) => {

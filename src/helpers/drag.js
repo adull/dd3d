@@ -41,7 +41,7 @@ const overlappingData = (a, b, word) => {
     const aCenter = a.x + a.width / 2
     const progress = Math.min(Math.max((aCenter - b.x) / bw, 0), 1)
     const gapIndex = Math.round(progress * word.length)
-    return { index: gapIndex - 1 }
+    return { index: gapIndex }
   };
 
 // const overlappingResponse = (name, data) => { return {...data, name}}
