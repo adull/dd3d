@@ -2,9 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { computeLayout } from './layout'
 
 const createBoxes = ({ array, container }) => {
-    console.log(container.pos)
     const height = container.pos[1]
-    console.log({ height })
     const width = 500
     const padding = 40
 

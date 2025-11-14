@@ -44,7 +44,8 @@ const Scene = ({ cameraPos, camRef }) => {
     })
     const boxes = [...letters, ...operators]
 
-    console.log(boxes)
+
+    // console.log(boxes)
     const instructionRef = useRef(
         boxes.reduce((acc, item) => {
           acc[item.id] = { goTo: item.pos };

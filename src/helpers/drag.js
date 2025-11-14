@@ -43,6 +43,21 @@ const overlappingData = (a, b, word) => {
     const gapIndex = Math.round(progress * word.length)
     return { index: gapIndex }
   };
+// const getInsertionIndex = (cursorZ, layout) => {
+//   if (layout.length === 0) return 0
+//   if(cursorZ < layout[0].x) return 0
+
+//   if(cursorZ > layout[layout.length - 1].x) return layout.length
+
+//   for(let i = 0; i < layout.length - 1; i ++) {
+//     const left = layout[i].x
+//     const right = layout[i + 1].x
+//     const mid = left + right / 2
+    
+//     if(cursorZ < mid) return i + 1
+//   }
+//   return layout.length
+// }
 
 // const overlappingResponse = (name, data) => { return {...data, name}}
 
