@@ -1,5 +1,5 @@
-import { useEffect, useRef, useMemo } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import {  useRef, useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 

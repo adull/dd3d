@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 
-const Container = ({ initPos, name, items }) => {
+const Container = ({ initPos, name }) => {
     const  meshRef = useRef()
     const bodyRef = useRef()
 

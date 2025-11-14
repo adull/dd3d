@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import deepEqual from 'fast-deep-equal';
+// import deepEqual from 'fast-deep-equal';
 import * as THREE from 'three'
 
 // const dragEvent = new EventEmitter()
@@ -26,30 +26,27 @@ const testDraw = (pos, box, viewport) => {
     
 }
 
-const overlappingData = (a, b) => {
+const overlappingData = (a, b, word) => {
     const isOverlapping = !(
       a.x + a.width < b.x ||
       b.x + b.width < a.x ||
       a.y + a.height < b.y ||
       b.y + b.height < a.y
     );
+  
+    // const word = item.word
+    if (!isOverlapping) return { index: -1}
+  
     const bw = b.width
-    const isLeft = isOverlapping && a.x < b.x + bw / 2
-
-    const aCenter = a.x + a.width / 2;
-    const progress = (aCenter - b.x) / bw;
-    const clampedProgress = Math.min(Math.max(progress, 0), 1).toPrecision(2);
-
-    return {
-        isOverlapping,
-        position: isOverlapping ? isLeft ? 'left' : 'right' : null,
-        progress: clampedProgress
-    }
+    const aCenter = a.x + a.width / 2
+    const progress = Math.min(Math.max((aCenter - b.x) / bw, 0), 1)
+    const gapIndex = Math.round(progress * word.length)
+    return { index: gapIndex - 1 }
   };
 
-const overlappingResponse = (name, data) => { return {...data, name}}
+// const overlappingResponse = (name, data) => { return {...data, name}}
 
-const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewport, updateFn }) => {
+const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewport, updateFn, item, game }) => {
     const current = body.translation()
     const dragging = getBoxFromScreen(mesh, camera, viewport)
     const containers = getContainers(scene, current)
@@ -57,24 +54,26 @@ const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewpo
     for (const container of containers) {
       const containerMesh = container.children[0]
       const name = containerMesh.name.replace('container--', '')
+      const currWord = game[name]
+      // console.log({ currWord})
   
       const containerPos = getBoxFromScreen(containerMesh, camera, viewport)
-      const od = overlappingData(dragging, containerPos)
+      const hovered = overlappingData(dragging, containerPos, currWord)
   
-      const prev = prevResults.get(name)
-
+      const prevIndex = prevResults.get(name)
+      // console.log({ prevIndex })
   
-      if (!prev || !deepEqual(od, prev)) {
-        const res = overlappingResponse(name, od)
-  
-        if (res.isOverlapping) {
-            wasOverlapping = true
-          updateFn(res)
-          prevResults.set(name, od)
+      if (!prevIndex || hovered.index !== prevIndex) {
+        if (hovered.index !== -1) {
+            // wasOverlapping = true
+            console.log({ index: hovered.index, name, currWord})
+            console.log(item)
+          updateFn({ currWord, hoveredIndex: hovered.index, name, currBox: item.id })
+          prevResults.set(name, hovered.index)
           return; 
         }
   
-        prevResults.set(name, od);
+        prevResults.set(name, currWord);
       }
     }
   

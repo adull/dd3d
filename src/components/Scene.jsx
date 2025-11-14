@@ -1,12 +1,12 @@
 
-import React, { useRef, useEffect, useMemo, useState } from 'react'
+import React, { useRef, useEffect, useMemo } from 'react'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 import { dragLoop } from '../helpers/drag'
-import { evenlySpace } from '../helpers/space'
+import { createBoxes } from '../helpers/boxes'
 import BoxComponent from './BoxComponent'
 import Container from './Container'
 import MouseLayer from './MouseLayer'
@@ -16,21 +16,18 @@ const Scene = ({ cameraPos, camRef }) => {
     console.log({ cameraPos, camRef})
     const gridRef = useRef(null)
     const controlsRef = useRef(null)
-    const isDraggingRef = useRef(false)
+    const draggingRef = useRef({ isDragging: false, item: null})
     const activeBodyRef = useRef(null)
     const activeMeshRef = useRef(null)
-    // const state = useThree()
     const containersRef = useRef([])
-    const draggingStateRef = useRef(null)
+    const dragSignalRef = useRef(null)
 
-    // const [letters, setLetters] = useState('1234'.split(''))
-    // const [operators, setOperators] = useState('()+-x'.split(''))
-    // const [solutions, setSolutions] = useState([])
-    const [game, setGame] = useState({
-        letters: '1234',
-        operators: '()+-x',
+    const word = '1234'
+    const gameRef = useRef({
+        letters: word,
+        operators: '+-/x',
         solutions: ''
-    }) 
+    })
 
     const containers = [
         { name: `letters`, pos: [500,0,0], color: `white`},
@@ -39,10 +36,16 @@ const Scene = ({ cameraPos, camRef }) => {
     ] 
 
     
-    const letters = evenlySpace({height: 500, x: -250, y: 250, width: 500, array: game.letters.split('')})
-    const operators = evenlySpace({height: 0, x: -250, y: 250, width: 500, array: game.operators.split('')})
-    const solutions = evenlySpace({height: -500, x: -250, y: 250, width: 500, array: game.solutions.split('')})
-    const boxes = [...letters, ...operators, ...solutions]
+    
+    const letters = createBoxes({
+        array: word.split(''),
+        container: containers.find(item => item.name === `letters`)
+    })
+    const operators = createBoxes({
+        array: gameRef.current.operators.split(''),
+        container: containers.find(item => item.name === `operators`)
+    })
+    const boxes = [...letters, ...operators]
 
 
     const onDragRotateCam = false
@@ -56,15 +59,15 @@ const Scene = ({ cameraPos, camRef }) => {
 
     useEffect(() => {
         const handlePointerUp =  () => {   
-            isDraggingRef.current = false
-            console.log(draggingStateRef.current)
+            draggingRef.current = { isDragging: false, item: null}
+            console.log(draggingRef.current)
         }
         window.addEventListener('pointerup', handlePointerUp)
         return () => window.removeEventListener('pointerup', handlePointerUp)
     }, [])
 
-    const grabItem = (bodyRef, meshRef) => {
-        isDraggingRef.current = true
+    const grabItem = (bodyRef, meshRef, item) => {
+        draggingRef.current = { isDragging: true, item }
         activeBodyRef.current = bodyRef.current
         activeMeshRef.current = meshRef.current
 
@@ -74,26 +77,19 @@ const Scene = ({ cameraPos, camRef }) => {
 
     const updateFn = (draggingRes) => {
         console.log(draggingRes)
-        if (draggingRes.isOverlapping) {
-            const updatedGame = {
-                ...game,
-                [draggingRes.name]: game[draggingRes.name] + ' '
-            }
-            console.log({ updatedGame})
-            // setGame(updatedGame)
-        } else {
-            const updatedGame = Object.fromEntries(
-                Object.entries(game).map(([key, val]) => [key, val.replace(' ', '')])
-            )
-            // setGame(updatedGame)
-        }
-        draggingStateRef.current = draggingRes
+        dragSignalRef.current = draggingRes
+        // const relevantBoxes = boxes.filter(item => item.currentContainer === draggingRes.name).filter(item => item.id !== draggingRes.currBox)
+        // console.log({ relevantBoxes})
     }
 
     useFrame(({ scene, camera, raycaster, pointer, viewport}) => {
-        if(isDraggingRef.current) {
-            dragLoop({ scene, camera, pointer, plane, raycaster, viewport, body: activeBodyRef.current, mesh: activeMeshRef.current, updateFn })
-            // console.log(dragRes)
+        if(draggingRef.current.isDragging) {
+            // console.log(draggingRef.current)
+            dragLoop({ 
+                scene, camera, pointer, plane, raycaster, viewport, 
+                body: activeBodyRef.current, mesh: activeMeshRef.current, 
+                updateFn, item: draggingRef.current.item, game: gameRef.current
+            })
         }
     })
 
@@ -109,7 +105,7 @@ const Scene = ({ cameraPos, camRef }) => {
                 ))}
                 <>
                     { boxes.map(item => (
-                        <BoxComponent gravity={false} initPos={item.pos} mouseDown={grabItem}/>
+                        <BoxComponent gravity={false} item={item} mouseDown={grabItem} dragSignal={dragSignalRef}/>
                     )) }
                 </>
                 
