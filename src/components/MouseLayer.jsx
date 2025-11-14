@@ -7,14 +7,7 @@ const MouseLayer = () => {
     // const state = useThree()
     const meshRef = useRef(null)
     const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,1,0), -500), [])
-    console.log({ plane})
     const point = new THREE.Vector3()
-
-    // useEffect(() => {
-    //     window.addEventListener('mousemove', (e) => {
-    //         console.log(e)
-    //     })
-    // })
 
     useFrame(({ pointer, raycaster, camera }) => {
         if(!meshRef.current) return

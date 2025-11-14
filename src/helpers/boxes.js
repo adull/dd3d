@@ -1,18 +1,30 @@
 import { v4 as uuidv4 } from 'uuid'
+import { computeLayout } from './layout'
 
 const createBoxes = ({ array, container }) => {
-    const height = container.pos[0]
+    console.log(container.pos)
+    const height = container.pos[1]
+    console.log({ height })
     const width = 500
-    const x = width * -1 / 2
-    const increment = (width) / (array.length - 1)
+    const padding = 40
+
+    const layout = computeLayout({
+        count: array.length,
+        width,
+        padding,
+        height
+    })
+    
     return array.map((item, index) => {
+        const p = layout[index]
+
         return {
             item,
             index,
-            pos: [height, 0, x + (index * increment)],
             id: uuidv4(),
             type: container.name,
-            currentContainer: container.name
+            currentCountainer: container.name,
+            pos: [p.x, p.y, p.z],
         }
     })
 }

@@ -65,9 +65,6 @@ const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewpo
   
       if (!prevIndex || hovered.index !== prevIndex) {
         if (hovered.index !== -1) {
-            // wasOverlapping = true
-            console.log({ index: hovered.index, name, currWord})
-            console.log(item)
           updateFn({ currWord, hoveredIndex: hovered.index, name, currBox: item.id })
           prevResults.set(name, hovered.index)
           return; 

@@ -9,11 +9,8 @@ import { dragLoop } from '../helpers/drag'
 import { createBoxes } from '../helpers/boxes'
 import BoxComponent from './BoxComponent'
 import Container from './Container'
-import MouseLayer from './MouseLayer'
-
 
 const Scene = ({ cameraPos, camRef }) => {
-    console.log({ cameraPos, camRef})
     const gridRef = useRef(null)
     const controlsRef = useRef(null)
     const draggingRef = useRef({ isDragging: false, item: null})
@@ -30,9 +27,9 @@ const Scene = ({ cameraPos, camRef }) => {
     })
 
     const containers = [
-        { name: `letters`, pos: [500,0,0], color: `white`},
+        { name: `letters`, pos: [0,500,0], color: `white`},
         { name: `operators`, pos: [0,0,0], color: `white` },
-        { name: `solutions`, pos: [-500,0,0], color: `white`}
+        { name: `solutions`, pos: [0,-500,0], color: `white`}
     ] 
 
     
@@ -47,14 +44,26 @@ const Scene = ({ cameraPos, camRef }) => {
     })
     const boxes = [...letters, ...operators]
 
+    console.log(boxes)
+    const instructionRef = useRef(
+        boxes.reduce((acc, item) => {
+          acc[item.id] = { goTo: item.pos };
+          return acc;
+        }, {})
+      );
+      
+
+    console.log(instructionRef)
+
 
     const onDragRotateCam = false
     // const onDragRotateCam = true
 
     containersRef.current = Array.from(containers, () => null)
-    console.log(containersRef.current)
+    // console.log(containersRef.current)
 
-    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,1,0), -500), [])
+    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,0,1), -500), [])
+
 
 
     useEffect(() => {
@@ -95,8 +104,7 @@ const Scene = ({ cameraPos, camRef }) => {
         <>
             <PerspectiveCamera makeDefault position={cameraPos} ref={camRef}/>
             <directionalLight color="white" position={[0, 0, 5]} />
-            <directionalLight color="white" position={[0, 5, 0]} />
-            <MouseLayer />
+            <directionalLight color="white" position={[5, 5, 0]} />
             <Physics >
                 { containers.map((container, i) => (
                     <Container ref={containersRef[i]} name={container.name} initPos={container.pos} />
@@ -114,7 +122,7 @@ const Scene = ({ cameraPos, camRef }) => {
                 ref={gridRef}
                 args={[10000, 100, '#000000', '#cccccc']}
                 position={[0, 0, 0]}
-                rotation={[0, -Math.PI / 2, 0]}
+                rotation={[Math.PI/2,0,0]}
             />
         </>
     );

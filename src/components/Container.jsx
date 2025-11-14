@@ -17,7 +17,7 @@ const Container = ({ initPos, name }) => {
         
         <RigidBody ref={bodyRef} gravityScale={0} type="fixed" position={initPos} >
             <mesh ref={meshRef} name={`container--${name}`}>
-                <boxGeometry args={[100,1,1000]}/>
+                <boxGeometry args={[1000,100,15]}/>
                 <meshStandardMaterial color="orange" />
             </mesh>
         </RigidBody>
