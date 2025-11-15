@@ -72,7 +72,11 @@ const isOverlapping = (a, b) =>  !(
 
 const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewport, updateFn, item, game }) => {
     const current = body.translation()
-    const dragging = getBoxFromScreen(mesh, camera, viewport)
+    
+    const meshFromGroup = mesh.children[0]
+    // const dragging = getBoxFromScreen(mesh, camera, viewport)
+    const dragging = getBoxFromScreen(meshFromGroup, camera, viewport)
+
     const containers = getContainers(scene, current)
   
     for (const container of containers) {

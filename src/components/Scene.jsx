@@ -22,28 +22,28 @@ const Scene = ({ cameraPos, camRef }) => {
 
     const word = '1234'
     const gameRef = useRef({
-        letters: word,
+        characters: word,
         operators: '+-/x',
         solutions: ''
     })
 
     const containers = [
-        { name: `letters`, pos: [0,500,0], color: `white`},
+        { name: `characters`, pos: [0,500,0], color: `white`},
         { name: `operators`, pos: [0,0,0], color: `white` },
         { name: `solutions`, pos: [0,-500,0], color: `white`}
     ] 
 
     
     
-    const letters = createBoxes({
+    const characters = createBoxes({
         array: word.split(''),
-        container: containers.find(item => item.name === `letters`)
+        container: containers.find(item => item.name === `characters`)
     })
     const operators = createBoxes({
         array: gameRef.current.operators.split(''),
         container: containers.find(item => item.name === `operators`)
     })
-    const boxes = [...letters, ...operators]
+    const boxes = [...characters, ...operators]
 
     console.log(boxes)
 
@@ -97,7 +97,8 @@ const Scene = ({ cameraPos, camRef }) => {
 
         // const wordArray = gameRef.current[containerName].split('')
         const boxArray = boxes.filter(box => box.currentContainer === containerName)
-        // console.log({ boxArray})
+        const letterArr = boxArray.map(item => item.val)
+        console.log(letterArr)
         const newOrder = reorder(boxArray, oldIndex, newIndex).map(item => { return { item, containerName }})
 
         gameRef.current[container] = newOrder.join('')
@@ -108,28 +109,23 @@ const Scene = ({ cameraPos, camRef }) => {
             padding: 40,
             height: containers.find(c => c.name === containerName).pos[1]
         })
-        // console.log({ newLayout})
-        // console.log({ boxes})
-        // console.log({container})
-        // console.log({newOrder})
+
         console.log(draggingRef.current)
         newOrder.forEach((letter, i) => {
-            // const box = boxes.find(b => b.item.id === letter.id && b.currentContainer === containerName);
-            // console.log({ box })
-            // if (!box) return;
             const box = letter.item
-        
-            const p = newLayout[i];
-        
-            // instructionRef.current[box.id].goTo = [p.y, p.z, p.x];
+            const p = newLayout[i]
             if(box.id !== draggingRef.current.item.id) {
-                instructionRef.current[box.id] = { sleep: false, goTo: [p.y, p.z, p.x] };
+                instructionRef.current[box.id] = { sleep: false, goTo: [p.x, p.y, p.z] }
             }
 
-            box.index = i; // keep data in sync
-          });
+            box.index = i
+        });
 
-          console.log(instructionRef.current)
+        console.log(instructionRef.current)
+        // const gotos = Object.entries(instructionRef.current.map(item => item.go))
+        // console.log(gotos)
+
+        console.log(newOrder)
 
         // console.log(instructionRef.current)
           

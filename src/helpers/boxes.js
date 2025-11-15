@@ -17,7 +17,7 @@ const createBoxes = ({ array, container }) => {
         const p = layout[index]
 
         return {
-            item,
+            val: item,
             index,
             id: uuidv4(),
             type: container.name,
