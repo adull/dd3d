@@ -1,6 +1,6 @@
-import EventEmitter from 'events'
 // import deepEqual from 'fast-deep-equal';
 import * as THREE from 'three'
+import { computeLayout } from './layout'
 
 // const dragEvent = new EventEmitter()
 const prevResults = new Map()
@@ -43,23 +43,32 @@ const overlappingData = (a, b, word) => {
     const gapIndex = Math.round(progress * word.length)
     return { index: gapIndex }
   };
-// const getInsertionIndex = (cursorZ, layout) => {
-//   if (layout.length === 0) return 0
-//   if(cursorZ < layout[0].x) return 0
+const getInsertionIndex = (cursorX, layout) => {
+  if (layout.length === 0) return 0
+  if(cursorX < layout[0].x) return 0
 
-//   if(cursorZ > layout[layout.length - 1].x) return layout.length
+  if(cursorX > layout[layout.length - 1].x) return layout.length
 
-//   for(let i = 0; i < layout.length - 1; i ++) {
-//     const left = layout[i].x
-//     const right = layout[i + 1].x
-//     const mid = left + right / 2
-    
-//     if(cursorZ < mid) return i + 1
-//   }
-//   return layout.length
-// }
+  for(let i = 0; i < layout.length - 1; i ++) {
+    // this needs some work - this doesnt look visually right because:
+    // 1: it should be if its halfway through the item, not on the left hand side of it
+    // 2: theyre on different z scales so it looks off visually - need to use getBoxFromScreen to create the flat x vals to compare to.
+    // fine for now, cant release like this though.
+    const itemX = layout[i].x
+    if(cursorX < itemX) return i
+  }
+  return layout.length
+}
 
-// const overlappingResponse = (name, data) => { return {...data, name}}
+const isOverlapping = (a, b) =>  !(
+    a.x + a.width < b.x ||
+    b.x + b.width < a.x ||
+    a.y + a.height < b.y ||
+    b.y + b.height < a.y
+  );
+
+  
+
 
 const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewport, updateFn, item, game }) => {
     const current = body.translation()
@@ -67,35 +76,64 @@ const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewpo
     const containers = getContainers(scene, current)
   
     for (const container of containers) {
+      // console.log(container)
       const containerMesh = container.children[0]
-      const name = containerMesh.name.replace('container--', '')
-      const currWord = game[name]
-      // console.log({ currWord})
-  
-      const containerPos = getBoxFromScreen(containerMesh, camera, viewport)
-      const hovered = overlappingData(dragging, containerPos, currWord)
-  
-      const prevIndex = prevResults.get(name)
-      // console.log({ prevIndex })
-  
-      if (!prevIndex || hovered.index !== prevIndex) {
-        if (hovered.index !== -1) {
-          updateFn({ currWord, hoveredIndex: hovered.index, name, currBox: item.id })
-          prevResults.set(name, hovered.index)
-          return; 
+      const containerObj = getBoxFromScreen(containerMesh, camera, viewport)
+      if(isOverlapping(dragging, containerObj)) {
+        const word = game[containerMesh.name.replace("container--","")];
+        const boxList = word.split('')
+        const layout = computeLayout({
+          count: boxList.length,
+          width: 500,
+          padding: 40,
+          height: container.position.x
+        })
+        // console.log(layout)
+
+        const cursorX = dragging.worldCenter.x
+        const insertionIndex = getInsertionIndex(cursorX, layout)
+        const prev = prevResults.get(containerMesh.name);
+        if (prev !== insertionIndex) {
+          updateFn({
+            container: containerMesh.name,
+            oldIndex: item.index,
+            newIndex: insertionIndex,
+          });
+          prevResults.set(containerMesh.name, insertionIndex);
         }
-  
-        prevResults.set(name, currWord);
       }
     }
+    
+      
+
+      // console.log({ currWord})
   
-    if (![...prevResults.values()].some(r => r.isOverlapping)) {
-        // console.log(prevResults)
-        if(wasOverlapping) {
-            updateFn({ isOverlapping: false });
-            wasOverlapping = false
-        }
-    }
+    //   const boxList = word.split('')
+    //   const layout = computeLayout({
+    //     count: boxList.length,
+    //     width: 500,
+    //     padding: 40,
+    //     height: container.position.x
+    //   })
+
+    //   const dragBoxScreen = getBoxFromScreen(mesh, camera, viewport)
+    //   // console.log(dragBoxScreen)
+    //   const cursorX = dragBoxScreen.worldCenter.x
+
+    //   const insertionIndex = getInsertionIndex(cursorX, layout)
+    //   // console.log({ insertionIndex})
+
+    //   const prev = prevResults.get(containerMesh.name);
+    //   if (prev !== insertionIndex) {
+    //     updateFn({
+    //       container: containerMesh.name,
+    //       oldIndex: item.index,
+    //       newIndex: insertionIndex,
+    //       id: item.id
+    //     });
+    //     prevResults.set(containerMesh.name, insertionIndex);
+    //   }
+    // }
   
 
     const velocity = body.linvel()
@@ -164,12 +202,18 @@ const getBoxFromScreen = (rect, camera, viewport) => {
     const right = Math.max(...xs)
     const top = Math.min(...ys)
     const bottom = Math.max(...ys)
+
+    const worldCenter = new THREE.Vector3();
+    worldCenter.copy(box.getCenter(new THREE.Vector3()));
+    rect.localToWorld(worldCenter);
+
   
     return {
       x: left,
       y: top,
       width: right - left,
       height: bottom - top,
+      worldCenter
     };
 
 }

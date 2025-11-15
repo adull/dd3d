@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 import { dragLoop } from '../helpers/drag'
+import { computeLayout } from '../helpers/layout'
 import { createBoxes } from '../helpers/boxes'
 import BoxComponent from './BoxComponent'
 import Container from './Container'
@@ -44,17 +45,19 @@ const Scene = ({ cameraPos, camRef }) => {
     })
     const boxes = [...letters, ...operators]
 
+    console.log(boxes)
+
 
     // console.log(boxes)
     const instructionRef = useRef(
         boxes.reduce((acc, item) => {
-          acc[item.id] = { goTo: item.pos };
+          acc[item.id] = { sleep: true, goTo: item.pos };
           return acc;
         }, {})
       );
       
 
-    console.log(instructionRef)
+    // console.log(instructionRef)
 
 
     const onDragRotateCam = false
@@ -70,7 +73,7 @@ const Scene = ({ cameraPos, camRef }) => {
     useEffect(() => {
         const handlePointerUp =  () => {   
             draggingRef.current = { isDragging: false, item: null}
-            console.log(draggingRef.current)
+            // console.log(draggingRef.current)
         }
         window.addEventListener('pointerup', handlePointerUp)
         return () => window.removeEventListener('pointerup', handlePointerUp)
@@ -80,14 +83,57 @@ const Scene = ({ cameraPos, camRef }) => {
         draggingRef.current = { isDragging: true, item }
         activeBodyRef.current = bodyRef.current
         activeMeshRef.current = meshRef.current
-
-        console.log({bodyRef, meshRef})
-
     }
 
-    const updateFn = (draggingRes) => {
-        console.log(draggingRes)
-        dragSignalRef.current = draggingRes
+    const updateFn = ({ container, oldIndex, newIndex }) => {
+        console.log({ container, oldIndex, newIndex })
+        const reorder = (list, from, to) => {
+            const arr = [...list];
+            const [moved] = arr.splice(from, 1);
+            arr.splice(to, 0, moved);
+            return arr;
+        }
+        const containerName = container.replace('container--', '')
+
+        // const wordArray = gameRef.current[containerName].split('')
+        const boxArray = boxes.filter(box => box.currentContainer === containerName)
+        // console.log({ boxArray})
+        const newOrder = reorder(boxArray, oldIndex, newIndex).map(item => { return { item, containerName }})
+
+        gameRef.current[container] = newOrder.join('')
+
+        const newLayout = computeLayout({
+            count: newOrder.length,
+            width: 500,
+            padding: 40,
+            height: containers.find(c => c.name === containerName).pos[1]
+        })
+        // console.log({ newLayout})
+        // console.log({ boxes})
+        // console.log({container})
+        // console.log({newOrder})
+        console.log(draggingRef.current)
+        newOrder.forEach((letter, i) => {
+            // const box = boxes.find(b => b.item.id === letter.id && b.currentContainer === containerName);
+            // console.log({ box })
+            // if (!box) return;
+            const box = letter.item
+        
+            const p = newLayout[i];
+        
+            // instructionRef.current[box.id].goTo = [p.y, p.z, p.x];
+            if(box.id !== draggingRef.current.item.id) {
+                instructionRef.current[box.id] = { sleep: false, goTo: [p.y, p.z, p.x] };
+            }
+
+            box.index = i; // keep data in sync
+          });
+
+          console.log(instructionRef.current)
+
+        // console.log(instructionRef.current)
+          
+        
     }
 
     useFrame(({ scene, camera, raycaster, pointer, viewport}) => {
@@ -108,12 +154,19 @@ const Scene = ({ cameraPos, camRef }) => {
             <directionalLight color="white" position={[5, 5, 0]} />
             <Physics >
                 { containers.map((container, i) => (
-                    <Container ref={containersRef[i]} name={container.name} initPos={container.pos} />
+                    <Container key={i} ref={containersRef[i]} name={container.name} initPos={container.pos} />
                 ))}
                 <>
-                    { boxes.map(item => (
-                        <BoxComponent gravity={false} item={item} mouseDown={grabItem} dragSignal={dragSignalRef}/>
-                    )) }
+                    { boxes.map(item => { 
+                        // console.log(instructionRef.current); 
+                        return (
+                            <BoxComponent 
+                            key={item.id} 
+                            item={item} 
+                            mouseDown={grabItem} 
+                            instructionRef={instructionRef}/>
+                        )
+                    }) }
                 </>
                 
             </Physics>

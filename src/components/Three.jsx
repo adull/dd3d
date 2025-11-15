@@ -22,7 +22,6 @@ const Three = () => {
         const parentHeight = parent.clientHeight
         let nonCanvasHeight = 92
         
-        console.log(`set height..`)
         setHeight(parentHeight - nonCanvasHeight)
     }, [])
 

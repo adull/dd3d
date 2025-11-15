@@ -21,7 +21,7 @@ const createBoxes = ({ array, container }) => {
             index,
             id: uuidv4(),
             type: container.name,
-            currentCountainer: container.name,
+            currentContainer: container.name,
             pos: [p.x, p.y, p.z],
         }
     })
