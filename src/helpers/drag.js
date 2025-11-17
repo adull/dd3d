@@ -81,6 +81,23 @@ const canDrop = (draggingType, containerType) => {
   return rules[containerType].includes(draggingType)
 }
 
+const dumdrag = ({ mouse, camera, plane, raycaster, mesh }) => {
+  raycaster.setFromCamera(mouse, camera);
+
+  // Align plane with camera each frame
+  plane.setFromNormalAndCoplanarPoint(
+    camera.getWorldDirection(new THREE.Vector3()).clone().negate(),
+    mesh.position
+  );
+
+  const point = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, point);
+
+  console.log("intersection:", point);
+
+  mesh.position.copy(point);  // or mesh.parent.worldToLocal(point)
+};
+
 
 const dragLoop = ({ scene, camera, mouse, plane, raycaster, body, mesh, viewport, updateFn, item, game, isArranging }) => {
   // if(!isArranging) {
@@ -222,4 +239,4 @@ const getBoxFromScreen = (rect, camera, viewport) => {
 
 }
 
-export { dragLoop }
+export { dragLoop, dumdrag }
