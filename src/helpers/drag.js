@@ -95,6 +95,7 @@ const dragLoop = ({ scene, camera, mouse, plane, raycaster, body, mesh, viewport
     
     const meshFromGroup = mesh.children[0]
     const dragging = getBoxFromScreen(meshFromGroup, camera, viewport)
+    // console.log(dragging)
 
     const containers = getContainers(scene, current)
   

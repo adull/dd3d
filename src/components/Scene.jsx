@@ -71,8 +71,47 @@ const Scene = ({ cameraPos, camRef }) => {
 
     useEffect(() => {
         const handlePointerUp =  () => {   
-            draggingRef.current = { isDragging: false, item: null}
-            // console.log(draggingRef.current)
+            // console.log(draggingRef.current.item)
+            const containerName = draggingRef.current.containerHovering
+            console.log({ containerName })
+            const items = gameRef.current[containerName].split('')
+            
+            console.log(instructionRef.current)
+            const relevantBoxes = boxes.filter(box => box.currentContainer === containerName)
+            // const relevantInstructions = 
+            const height = relevantBoxes[0].pos[1]
+            const layout = computeLayout({ count: items.length, height })
+
+            console.log(layout)
+            
+            const pos = layout[draggingRef.current.hoveredIndex]
+            const posToDrop = [pos.x, pos.y, pos.z] 
+            const dragging = draggingRef.current.item.id
+            instructionRef.current[dragging]= {
+                sleep: false,
+                goTo: posToDrop
+            } 
+
+            // console.log({ relevantBoxes})
+            let relevant = relevantBoxes.map(item => { return {val: item.val, id: item.id} })
+            
+            relevant = relevant.map(item => {
+                const goTo = instructionRef.current[item.id].goTo
+                return {...item, goTo}
+            }).sort((a,b) => a.goTo[0] - b.goTo[0]).map(item => item.val)
+            // console.log(relevant.join(''))
+            gameRef.current.characters = relevant.join('')
+            console.log(boxes)
+            // boxes.forEach(item => {
+            //     item.pos = instructionRef.current[item.id].goTo
+            // })
+
+            // instructionRef.current.forEach(item => item.sleep = true)
+            
+
+            // const sorted = newArr.sort((a, b) => a.x - b.x)
+
+            draggingRef.current = { isDragging: false, isArranging: false, item: null}
         }
         window.addEventListener('pointerup', handlePointerUp)
         return () => window.removeEventListener('pointerup', handlePointerUp)
@@ -85,6 +124,8 @@ const Scene = ({ cameraPos, camRef }) => {
     }
 
     const updateFn = ({ containerName, oldIndex, newIndex }) => {
+        draggingRef.current.containerHovering = containerName
+        draggingRef.current.hoveredIndex = newIndex
         console.log({ hoveredPos: newIndex })
         console.log({containerName})
         // console.log(boxes )
@@ -96,20 +137,15 @@ const Scene = ({ cameraPos, camRef }) => {
         console.log({ items, height: relevantBoxes[0] })
         const height = relevantBoxes[0]?.pos[1]
         console.log({ height })
-        const layout = computeLayout({ count: items.length, height }).filter((item, index) => index !== newIndex)
+        const layout = computeLayout({ count: items.length, height })
+        const filteredLayout = layout.filter((_, index) => index !== newIndex)
         // console.log({ layoutA, layoutB })
         relevantBoxes.forEach((item, i) => {
             instructionRef.current[item.id] = {
                 sleep: false,
-                goTo: [layout[i].x, layout[i].y, layout[i].z]
+                goTo: [filteredLayout[i].x, filteredLayout[i].y, filteredLayout[i].z]
             }
         })
-
-        console.log({ c: instructionRef.current})
-        
-
-          
-        
     }
 
     useFrame(({ scene, mouse, camera, raycaster, pointer, viewport}) => {

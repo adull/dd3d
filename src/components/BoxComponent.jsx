@@ -17,7 +17,7 @@ const BoxComponent = ({ item, mouseDown, isAsleep, instructionRef }) => {
             const [x, y, z] = inst.goTo
             const body = bodyRef.current
 
-            console.log({ x, y ,z })
+            // console.log({ x, y ,z })
 
             body.setTranslation({ x, y, z }, true)
 
