@@ -14,27 +14,12 @@ const BoxComponent = ({ item, mouseDown, isAsleep, instructionRef }) => {
     useFrame(() => {
         const inst = instructionRef.current[item.id]
         if (!inst?.sleep) {
-            // colliderRef.current = false
-            // const goTo = inst.goTo
-            // const body = bodyRef.current
-            // const curr = body.translation()
+            const [x, y, z] = inst.goTo
+            const body = bodyRef.current
 
-            // const dx = goTo[0] - curr.x
-            // const maxSpeed = 800
+            console.log({ x, y ,z })
 
-            // if (Math.abs(dx) < 0.1) {
-            // // body.setLinvel({ x: 0, y: 0, z: 0 })
-            //     inst.sleep = true
-            //     return
-            // }
-
-            // const direction = Math.sign(dx)
-            // body.setLinvel({ x: direction * maxSpeed, y: 0, z: 0 })
-            const [x, y, z] = inst.goTo;
-            const body = bodyRef.current;
-
-            body.setTranslation({ x, y, z }, true); // wakeUp = true
-            inst.sleep = true; // mark done
+            body.setTranslation({ x, y, z }, true)
 
         }
     })

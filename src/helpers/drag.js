@@ -44,10 +44,12 @@ const overlappingData = (a, b, word) => {
     return { index: gapIndex }
   };
 const getInsertionIndex = (cursorX, layout) => {
+  // console.log(cursorX)
+  // console.log(layout)
   if (layout.length === 0) return 0
   if(cursorX < layout[0].x) return 0
 
-  if(cursorX > layout[layout.length - 1].x) return layout.length
+  if(cursorX > layout[layout.length - 1].x) return layout.length - 1
 
   for(let i = 0; i < layout.length - 1; i ++) {
     // this needs some work - this doesnt look visually right because:
@@ -57,7 +59,7 @@ const getInsertionIndex = (cursorX, layout) => {
     const itemX = layout[i].x
     if(cursorX < itemX) return i
   }
-  return layout.length
+  return layout.length - 1
 }
 
 const isOverlapping = (a, b) =>  !(
@@ -68,13 +70,30 @@ const isOverlapping = (a, b) =>  !(
   );
 
   
+const canDrop = (draggingType, containerType) => {
+  const rules = {
+    // container   allowed items
+    'characters': ['characters', 'solutions'],
+    'operators': [],
+    'solutions': ['characters', 'solutions', 'operators']
+  }
+
+  return rules[containerType].includes(draggingType)
+}
 
 
-const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewport, updateFn, item, game }) => {
+const dragLoop = ({ scene, camera, mouse, plane, raycaster, body, mesh, viewport, updateFn, item, game, isArranging }) => {
+  // if(!isArranging) {
+    
+  // } 
+    // raycaster.setFromCamera(mouse, camera);
+    // const point = new THREE.Vector3();
+    // raycaster.ray.intersectPlane(plane, point);
+    // console.log({ x: point.x, y: point.y})
+
     const current = body.translation()
     
     const meshFromGroup = mesh.children[0]
-    // const dragging = getBoxFromScreen(mesh, camera, viewport)
     const dragging = getBoxFromScreen(meshFromGroup, camera, viewport)
 
     const containers = getContainers(scene, current)
@@ -82,64 +101,44 @@ const dragLoop = ({ scene, camera, pointer, plane, raycaster, body, mesh, viewpo
     for (const container of containers) {
       // console.log(container)
       const containerMesh = container.children[0]
-      const containerObj = getBoxFromScreen(containerMesh, camera, viewport)
-      if(isOverlapping(dragging, containerObj)) {
-        const word = game[containerMesh.name.replace("container--","")];
-        const boxList = word.split('')
-        const layout = computeLayout({
-          count: boxList.length,
-          width: 500,
-          padding: 40,
-          height: container.position.x
-        })
-        // console.log(layout)
+      const containerName = containerMesh.name.replace("container--","")
 
-        const cursorX = dragging.worldCenter.x
-        const insertionIndex = getInsertionIndex(cursorX, layout)
-        const prev = prevResults.get(containerMesh.name);
-        if (prev !== insertionIndex) {
-          updateFn({
-            container: containerMesh.name,
-            oldIndex: item.index,
-            newIndex: insertionIndex,
-          });
-          prevResults.set(containerMesh.name, insertionIndex);
+      
+        const containerObj = getBoxFromScreen(containerMesh, camera, viewport)
+        if(isOverlapping(dragging, containerObj)) {
+          if(canDrop(item.type, containerName)) {
+            const word = game[containerName];
+            const boxList = word.split('')
+            const layout = computeLayout({
+              count: boxList.length,
+              width: 500,
+              padding: 40,
+              height: container.position.x
+            })
+            // console.log(layout)
+
+            const cursorX = dragging.worldCenter.x
+            // console.log(cursorX)
+            // console.log(dragging)
+            const insertionIndex = getInsertionIndex(cursorX, layout)
+            const prev = prevResults.get(containerName);
+            if (prev !== insertionIndex) {
+              console.log(insertionIndex)
+              updateFn({
+                containerName: containerName,
+                oldIndex: item.index,
+                newIndex: insertionIndex,
+              });
+              prevResults.set(containerName, insertionIndex);
+            }
+
+          // return
+          } else {
+            // console.log(`cant - ${item.type} : ${containerName}`)
+          }
         }
-      }
     }
     
-      
-
-      // console.log({ currWord})
-  
-    //   const boxList = word.split('')
-    //   const layout = computeLayout({
-    //     count: boxList.length,
-    //     width: 500,
-    //     padding: 40,
-    //     height: container.position.x
-    //   })
-
-    //   const dragBoxScreen = getBoxFromScreen(mesh, camera, viewport)
-    //   // console.log(dragBoxScreen)
-    //   const cursorX = dragBoxScreen.worldCenter.x
-
-    //   const insertionIndex = getInsertionIndex(cursorX, layout)
-    //   // console.log({ insertionIndex})
-
-    //   const prev = prevResults.get(containerMesh.name);
-    //   if (prev !== insertionIndex) {
-    //     updateFn({
-    //       container: containerMesh.name,
-    //       oldIndex: item.index,
-    //       newIndex: insertionIndex,
-    //       id: item.id
-    //     });
-    //     prevResults.set(containerMesh.name, insertionIndex);
-    //   }
-    // }
-  
-
     const velocity = body.linvel()
     const target = new THREE.Vector3()
     raycaster.ray.intersectPlane(plane, target)

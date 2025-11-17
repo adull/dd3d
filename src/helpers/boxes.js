@@ -4,12 +4,12 @@ import { computeLayout } from './layout'
 const createBoxes = ({ array, container }) => {
     const height = container.pos[1]
     const width = 500
-    const padding = 40
+    // const padding = 40
 
     const layout = computeLayout({
         count: array.length,
         width,
-        padding,
+        padding: 40,
         height
     })
     

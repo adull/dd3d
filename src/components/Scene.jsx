@@ -18,7 +18,6 @@ const Scene = ({ cameraPos, camRef }) => {
     const activeBodyRef = useRef(null)
     const activeMeshRef = useRef(null)
     const containersRef = useRef([])
-    const dragSignalRef = useRef(null)
 
     const word = '1234'
     const gameRef = useRef({
@@ -45,7 +44,7 @@ const Scene = ({ cameraPos, camRef }) => {
     })
     const boxes = [...characters, ...operators]
 
-    console.log(boxes)
+    // console.log(boxes)
 
 
     // console.log(boxes)
@@ -80,65 +79,47 @@ const Scene = ({ cameraPos, camRef }) => {
     }, [])
 
     const grabItem = (bodyRef, meshRef, item) => {
-        draggingRef.current = { isDragging: true, item }
+        draggingRef.current = { isDragging: true, isArranging: false, item }
         activeBodyRef.current = bodyRef.current
         activeMeshRef.current = meshRef.current
     }
 
-    const updateFn = ({ container, oldIndex, newIndex }) => {
-        console.log({ container, oldIndex, newIndex })
-        const reorder = (list, from, to) => {
-            const arr = [...list];
-            const [moved] = arr.splice(from, 1);
-            arr.splice(to, 0, moved);
-            return arr;
-        }
-        const containerName = container.replace('container--', '')
-
-        // const wordArray = gameRef.current[containerName].split('')
-        const boxArray = boxes.filter(box => box.currentContainer === containerName)
-        const letterArr = boxArray.map(item => item.val)
-        console.log(letterArr)
-        const newOrder = reorder(boxArray, oldIndex, newIndex).map(item => { return { item, containerName }})
-
-        gameRef.current[container] = newOrder.join('')
-
-        const newLayout = computeLayout({
-            count: newOrder.length,
-            width: 500,
-            padding: 40,
-            height: containers.find(c => c.name === containerName).pos[1]
+    const updateFn = ({ containerName, oldIndex, newIndex }) => {
+        console.log({ hoveredPos: newIndex })
+        console.log({containerName})
+        // console.log(boxes )
+        // console.log(instructionRef)
+        // console.log(draggingRef.current.item)
+        const relevantBoxes = boxes.filter(box => box.currentContainer === containerName && box.id !== draggingRef.current.item.id)
+        // console.log({ relevantBoxes})
+        const items = gameRef.current[containerName].split('')
+        console.log({ items, height: relevantBoxes[0] })
+        const height = relevantBoxes[0]?.pos[1]
+        console.log({ height })
+        const layout = computeLayout({ count: items.length, height }).filter((item, index) => index !== newIndex)
+        // console.log({ layoutA, layoutB })
+        relevantBoxes.forEach((item, i) => {
+            instructionRef.current[item.id] = {
+                sleep: false,
+                goTo: [layout[i].x, layout[i].y, layout[i].z]
+            }
         })
 
-        console.log(draggingRef.current)
-        newOrder.forEach((letter, i) => {
-            const box = letter.item
-            const p = newLayout[i]
-            if(box.id !== draggingRef.current.item.id) {
-                instructionRef.current[box.id] = { sleep: false, goTo: [p.x, p.y, p.z] }
-            }
+        console.log({ c: instructionRef.current})
+        
 
-            box.index = i
-        });
-
-        console.log(instructionRef.current)
-        // const gotos = Object.entries(instructionRef.current.map(item => item.go))
-        // console.log(gotos)
-
-        console.log(newOrder)
-
-        // console.log(instructionRef.current)
           
         
     }
 
-    useFrame(({ scene, camera, raycaster, pointer, viewport}) => {
+    useFrame(({ scene, mouse, camera, raycaster, pointer, viewport}) => {
         if(draggingRef.current.isDragging) {
             // console.log(draggingRef.current)
             dragLoop({ 
-                scene, camera, pointer, plane, raycaster, viewport, 
+                scene, camera, mouse, plane, raycaster, viewport, 
                 body: activeBodyRef.current, mesh: activeMeshRef.current, 
-                updateFn, item: draggingRef.current.item, game: gameRef.current
+                updateFn, item: draggingRef.current.item, game: gameRef.current,
+                isArranging: draggingRef.current.isArranging
             })
         }
     })

@@ -1,4 +1,4 @@
-const computeLayout = ({ count, width = 500, padding = 0, height = 0 }) => {
+const computeLayout = ({ count, width = 500, padding = 40, height = 0 }) => {
     if (count === 0) return [];
   
     const totalInnerWidth = width - padding * 2;
