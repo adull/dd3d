@@ -154,6 +154,22 @@ const dragLoop = ({ scene, camera, mouse, plane, raycaster, body, mesh, viewport
     body.applyImpulse(force, true)
 }
 
+const ezDrag = ({ body, raycaster, plane }) => {
+  const current = body.translation()
+  const velocity = body.linvel()
+    const target = new THREE.Vector3()
+    raycaster.ray.intersectPlane(plane, target)
+    
+    const stiffness = 9000
+    const damping = 1000
+
+    const posError = new THREE.Vector3().subVectors(target, current)
+    const velError = new THREE.Vector3().copy(velocity)
+
+    const force = posError.multiplyScalar(stiffness).sub(velError.multiplyScalar(damping))
+    body.applyImpulse(force, true)
+}
+
 // this shouldnt be computed over and over.
 const getContainers = (scene) => {
     const objects = scene.children.filter(item => item.type === "Object3D")
@@ -222,4 +238,4 @@ const getBoxFromScreen = (rect, camera, viewport) => {
 
 }
 
-export { dragLoop }
+export { dragLoop, ezDrag }
