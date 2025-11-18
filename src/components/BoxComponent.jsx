@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
@@ -11,18 +11,12 @@ const BoxComponent = ({ item, mouseDown, mouseUp, goTo }) => {
 
     const colliderRef = useRef(`cuboid`)
 
-    useFrame(() => {
-        // const inst = instructionRef.current[item.id]
-        // if (!inst?.sleep) {
-        //     const [x, y, z] = inst.goTo
-        //     const body = bodyRef.current
-
-        //     // console.log({ x, y ,z })
-
-        //     body.setTranslation({ x, y, z }, true)
-
-        // }
-    })
+    let index = 0
+    
+    // console.log({ myBox })
+    // useEffect(() => {
+    //     console.log(item.pos)
+    // },[item])
 
     const onMouseDown = () => {
         mouseDown(bodyRef, meshRef, item)
@@ -36,6 +30,7 @@ const BoxComponent = ({ item, mouseDown, mouseUp, goTo }) => {
         // console.log(e)
         // console.log(`enter`)
     }
+    console.log(item.pos)
 
     const typeOptions = {size: 20, height: 2}
 
