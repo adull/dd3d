@@ -18,4 +18,13 @@ const getSavedCamPos = () => {
     return camPos ?? defaultPos
 }
 
-export { getCurrentCamPos, getSavedCamPos, updateSavedCamPos }
+const posArrToObj = (arr) => {
+    return { x:arr[0], y: arr[1], z: arr[2]}
+}
+
+const posObjToArr = (obj) => {
+    return [obj.x, obj.y, obj.z]
+}
+
+export { getCurrentCamPos, getSavedCamPos, updateSavedCamPos, posArrToObj, posObjToArr }
+

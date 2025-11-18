@@ -5,11 +5,13 @@ import { Physics } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import { dragLoop, ezDrag } from '../helpers/drag'
+import {  drag } from '../helpers/drag'
 import { computeLayout } from '../helpers/layout'
 import { containers, characters, operators } from '../helpers/gameDef'
-import BoxComponent from './BoxComponent'
+import Box from './Box'
 import Container from './Container'
+import { posArrToObj } from '../helpers'
+import { hardSet } from '../helpers/physics'
 
 const Scene = ({ cameraPos, camRef }) => {
     const gridRef = useRef(null)
@@ -35,45 +37,68 @@ const Scene = ({ cameraPos, camRef }) => {
     containersRef.current = Array.from(containers, () => null)
     // console.log(containersRef.current)
 
-    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,0,1), -500), [])
+    // const lowPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,0,1), 30), [])
+    const highPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0,0,1), -500), [])
 
     const grabItem = (bodyRef, meshRef, item) => {
         const dragging = boxes.find(box => box.id === item.id)
         console.log(dragging)
         dragging.type = 'dragging'
-        draggingRef.current = { isDragging: true, isArranging: false, item, body: bodyRef.current, mesh: meshRef.current }
+        draggingRef.current = { isDragging: true, isArranging: false, item, body: bodyRef, mesh: meshRef.current }
     }
 
     const drop = (bodyRef, meshRef, item) => {
+        const { droppingOn, indexToDrop } = draggingRef.current
         // console.log(`drop`)
-        draggingRef.current = {isDragging: false, isArranging: true, item: null, body: null, mesh: null}
-        draggingRef.current.body = null
-    }
-
-    const updateFn = ({ containerName, oldIndex, newIndex }) => {
+        console.log(bodyRef)
+        console.log(item)
         
+        const relevantBoxes = boxes.filter(box => box.currentContainer === droppingOn)
+        console.log({ relevantBoxes})
+        const height = relevantBoxes.length ? relevantBoxes[0].pos[1] : 0
+        const layout = computeLayout({count: relevantBoxes.length, height })
+        const pos = layout[indexToDrop]
+        console.log({ bodyRef })
+        hardSet(bodyRef.current, pos)
+        draggingRef.current = {isDragging: false, item: null }
+
+        // bodyRef.current.setTranslation(pos)
+        // console.log(draggingRef.current)
+        // draggingRef.current.body = null
     }
 
     const updateBoxes = (newBoxes) => {
-        // console.log(pBoxes)
         const mapped = newBoxes.map(item => item.id)
-        // console.log(mapped)
         const oldBoxes = boxes.filter(box => !mapped.includes(box.id))
-        // console.log([...newBoxes, ...oldBoxes ])
-        // setBoxes([...newBoxes, ...oldBoxes])
-        const lol = [...newBoxes, ...oldBoxes]
-        // console.log({lol})
-        // console.log({ boxes})
-        setBoxes(lol)
+        const updatedBoxes = [...newBoxes, ...oldBoxes]
+        console.log(`umm`)
+        setBoxes(updatedBoxes)
     }
 
     useFrame(({ scene, mouse, camera, raycaster, pointer, viewport}) => {
-        if(draggingRef.current.isDragging) {
+        const {isDragging, body, mesh,  isArranging } = draggingRef.current
+        if(isDragging) {
             // dragLoop({ })
-            const body = draggingRef.current.body
             if(body) {
-                ezDrag({ body, raycaster, plane })
+                drag({ body, raycaster, plane: highPlane })
             }
+        } else if(isArranging && body) {
+            // console.log(mesh)
+            // mesh.
+            // body.setTranslation({})
+            // const body = draggingRef.current.body
+            // drag({ body, raycaster, plane: lowPlane })
+            // console.log(body)
+            // const layout = boxes
+            // const test = body.current.translation()
+            // console.log(boxe)
+            // const myBoxes = 
+            // test.z = 30
+            // body.current.setTranslation()
+
+            // body.current.setTranslation([0,0,-30])
+            draggingRef.current = {...draggingRef.current, isDragging: false, isArranging: false }
+        // body.trans
         }
     })
 
@@ -97,12 +122,12 @@ const Scene = ({ cameraPos, camRef }) => {
                     { boxes.map(item => { 
                         // console.log(instructionRef.current); 
                         return (
-                            <BoxComponent 
+                            <Box 
                             key={item.id} 
                             item={item} 
                             mouseDown={grabItem} 
                             mouseUp={drop}
-                            goTo={null}/>
+                            draggingRef={draggingRef} />
                         )
                     }) }
                 </>

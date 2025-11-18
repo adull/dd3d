@@ -5,18 +5,20 @@ import * as THREE from 'three'
 import { Text3D } from '@react-three/drei'
 import helvetiker from '../assets/helvetiker_regular.typeface.json'
 
-const BoxComponent = ({ item, mouseDown, mouseUp, goTo }) => {
+const Box = ({ item, mouseDown, mouseUp, draggingRef }) => {
+    // console.log(boxes )
     const  meshRef = useRef()
     const bodyRef = useRef()
 
     const colliderRef = useRef(`cuboid`)
+    const itemPosition = useRef(item.pos ? item.pos : [0,0,0])
 
-    let index = 0
-    
-    // console.log({ myBox })
-    // useEffect(() => {
-    //     console.log(item.pos)
-    // },[item])
+
+    useEffect(() => {
+        if(item.id !== draggingRef.current.item?.id) {
+            itemPosition.current = item.pos
+        }
+    },[draggingRef, item])
 
     const onMouseDown = () => {
         mouseDown(bodyRef, meshRef, item)
@@ -30,12 +32,11 @@ const BoxComponent = ({ item, mouseDown, mouseUp, goTo }) => {
         // console.log(e)
         // console.log(`enter`)
     }
-    console.log(item.pos)
 
     const typeOptions = {size: 20, height: 2}
 
     return (
-            <RigidBody ref={bodyRef}  linearDamping={0} canSleep position={ item.pos ?? [0,500,0] } colliders={colliderRef.current} gravityScale={0}>
+            <RigidBody ref={bodyRef}  linearDamping={0} canSleep position={ item.pos } colliders={colliderRef.current} gravityScale={0}>
                 <group ref={meshRef} onPointerDown={onMouseDown} onPointerEnter={hmm} onPointerUp={onMouseUp}>
                     <mesh>
                         <boxGeometry args={[50,50,5]} />
@@ -49,4 +50,4 @@ const BoxComponent = ({ item, mouseDown, mouseUp, goTo }) => {
     );
 }
 
-export default BoxComponent;
+export default Box;

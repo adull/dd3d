@@ -71,6 +71,7 @@ const isOverlapping = (a, b) =>  !(
 
   
 const canDrop = (draggingType, containerType) => {
+  console.log({ draggingType, containerType})
   const rules = {
     // container   allowed items
     'characters': ['characters', 'solutions'],
@@ -154,9 +155,13 @@ const dragLoop = ({ scene, camera, mouse, plane, raycaster, body, mesh, viewport
     body.applyImpulse(force, true)
 }
 
-const ezDrag = ({ body, raycaster, plane }) => {
-  const current = body.translation()
-  const velocity = body.linvel()
+const drop = ({ body, raycaster, plane}) => {
+  
+}
+
+const drag = ({ body, raycaster, plane }) => {
+  const current = body.current.translation()
+  const velocity = body.current.linvel()
     const target = new THREE.Vector3()
     raycaster.ray.intersectPlane(plane, target)
     
@@ -167,7 +172,7 @@ const ezDrag = ({ body, raycaster, plane }) => {
     const velError = new THREE.Vector3().copy(velocity)
 
     const force = posError.multiplyScalar(stiffness).sub(velError.multiplyScalar(damping))
-    body.applyImpulse(force, true)
+    body.current.applyImpulse(force, true)
 }
 
 // this shouldnt be computed over and over.
@@ -238,4 +243,4 @@ const getBoxFromScreen = (rect, camera, viewport) => {
 
 }
 
-export { dragLoop, ezDrag }
+export { drag, canDrop }

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import { computeLayout } from '../helpers/layout'
+import { canDrop } from '../helpers/drag'
 
 
 const Container = ({ initPos, name, draggingRef, boxes, updateBoxes }) => {
@@ -19,10 +20,9 @@ const Container = ({ initPos, name, draggingRef, boxes, updateBoxes }) => {
 
     const getIndex = (e) => {
         if(!draggingRef.current.isDragging) return
+        const draggingType = draggingRef.current.item?.type
         
         const height = initPos[1]
-        // const relevantBoxes = boxes.filter(item => item.type === name)
-        // console.log({ relevantBoxes})
         const layout = computeLayout({ count: boxes.length + 1, height})
 
         const x = e.point.x
@@ -52,7 +52,9 @@ const Container = ({ initPos, name, draggingRef, boxes, updateBoxes }) => {
                 item.pos = [layout[i].x, layout[i].y, layout[i].z]
             })
 
-            // console.log(boxes)
+            console.log(`update boxes `)
+            draggingRef.current.indexToDrop = index
+            draggingRef.current.droppingOn = name
             updateBoxes(boxes)
         }
     }
