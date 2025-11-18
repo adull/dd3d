@@ -106,7 +106,13 @@ const Scene = ({ cameraPos, camRef }) => {
             //     item.pos = instructionRef.current[item.id].goTo
             // })
 
-            // instructionRef.current.forEach(item => item.sleep = true)
+            Object.values(instructionRef.current).forEach(item => {
+                // item.sleep = true
+                // item.goTo = null
+                console.log(item)
+            })
+
+            console.log(instructionRef)
             
 
             // const sorted = newArr.sort((a, b) => a.x - b.x)
@@ -126,8 +132,6 @@ const Scene = ({ cameraPos, camRef }) => {
     const updateFn = ({ containerName, oldIndex, newIndex }) => {
         draggingRef.current.containerHovering = containerName
         draggingRef.current.hoveredIndex = newIndex
-        console.log({ hoveredPos: newIndex })
-        console.log({containerName})
         // console.log(boxes )
         // console.log(instructionRef)
         // console.log(draggingRef.current.item)
