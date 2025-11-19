@@ -71,12 +71,11 @@ const isOverlapping = (a, b) =>  !(
 
   
 const canDrop = (draggingType, containerType) => {
-  console.log({ draggingType, containerType})
   const rules = {
-    // container   allowed items
-    'characters': ['characters', 'solutions'],
-    'operators': [],
-    'solutions': ['characters', 'solutions', 'operators']
+    // container |  allowed items
+    'characters':   ['characters', 'solutions'],
+    'operators':    [],
+    'solutions':    ['characters', 'solutions', 'operators']
   }
 
   return rules[containerType].includes(draggingType)

@@ -3,14 +3,20 @@ import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import { computeLayout } from '../helpers/layout'
 import { canDrop } from '../helpers/drag'
+import { isOperator, getItemType } from '../helpers'
 
 
 const Container = ({ initPos, name, draggingRef, boxes, updateBoxes }) => {
     const  meshRef = useRef()
     const bodyRef = useRef()
+    console.log(boxes)
 
     const layout = useRef([])
     const hoverPosition = useRef(-1)
+
+    useEffect(() => {
+        console.log(`container gets reset`)
+    }, [])
 
     useFrame(() => {
         // if(meshRef.current) {
@@ -19,8 +25,15 @@ const Container = ({ initPos, name, draggingRef, boxes, updateBoxes }) => {
     })
 
     const getIndex = (e) => {
-        if(!draggingRef.current.isDragging) return
-        const draggingType = draggingRef.current.item?.type
+        if(!draggingRef.current.isDragging) {
+            // hoverPosition.current = -1
+            return
+        }
+        console.log(`this parts ok`)
+        // console.log(draggingRef.current)
+        const { item } = draggingRef.current
+        const itemType = getItemType(item.val)
+        if(!canDrop(itemType, name )) return
         
         const height = initPos[1]
         const layout = computeLayout({ count: boxes.length + 1, height})
@@ -45,7 +58,7 @@ const Container = ({ initPos, name, draggingRef, boxes, updateBoxes }) => {
 
 
         if(hoverPosition.current !== index) {
-            // console.log({ layout })
+            
             hoverPosition.current = index
             layout.splice(index, 1)
             boxes.forEach((item, i) => {

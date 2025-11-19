@@ -26,5 +26,14 @@ const posObjToArr = (obj) => {
     return [obj.x, obj.y, obj.z]
 }
 
-export { getCurrentCamPos, getSavedCamPos, updateSavedCamPos, posArrToObj, posObjToArr }
+const isOperator = (char) => {
+    const operators = '+-x/'.split()
+    return operators.includes(char)
+}
+
+const getItemType = (char) => {
+    return isOperator(char) ? `operators` : `characters`
+}
+
+export { getCurrentCamPos, getSavedCamPos, updateSavedCamPos, posArrToObj, posObjToArr, isOperator, getItemType }
 

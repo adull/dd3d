@@ -10,7 +10,7 @@ import { computeLayout } from '../helpers/layout'
 import { containers, characters, operators } from '../helpers/gameDef'
 import Box from './Box'
 import Container from './Container'
-import { posArrToObj } from '../helpers'
+import { posArrToObj, getItemType } from '../helpers'
 import { hardSet } from '../helpers/physics'
 
 const Scene = ({ cameraPos, camRef }) => {
@@ -49,17 +49,17 @@ const Scene = ({ cameraPos, camRef }) => {
 
     const drop = (bodyRef, meshRef, item) => {
         const { droppingOn, indexToDrop } = draggingRef.current
-        // console.log(`drop`)
-        console.log(bodyRef)
-        console.log(item)
         
         const relevantBoxes = boxes.filter(box => box.currentContainer === droppingOn)
-        console.log({ relevantBoxes})
-        const height = relevantBoxes.length ? relevantBoxes[0].pos[1] : 0
+        console.log({containers, droppingOn})
+        const height = containers.find(item => item.name === droppingOn).pos[1]
         const layout = computeLayout({count: relevantBoxes.length, height })
-        const pos = layout[indexToDrop]
-        console.log({ bodyRef })
+        let pos = layout[indexToDrop]
+        if(!pos) pos = posArrToObj([0,height,30])
+        console.log(pos )
         hardSet(bodyRef.current, pos)
+        item.type = getItemType(item.val)
+        item.currentContainer = droppingOn
         draggingRef.current = {isDragging: false, item: null }
 
         // bodyRef.current.setTranslation(pos)
@@ -72,6 +72,7 @@ const Scene = ({ cameraPos, camRef }) => {
         const oldBoxes = boxes.filter(box => !mapped.includes(box.id))
         const updatedBoxes = [...newBoxes, ...oldBoxes]
         console.log(`umm`)
+        console.log({ updatedBoxes})
         setBoxes(updatedBoxes)
     }
 
@@ -115,7 +116,7 @@ const Scene = ({ cameraPos, camRef }) => {
                     draggingRef={draggingRef}
                     name={container.name} 
                     initPos={container.pos} 
-                    boxes={boxes.filter(item => item.type === container.name)} 
+                    boxes={boxes.filter(box => box.type === container.name)} 
                     updateBoxes={updateBoxes} />
                 ))}
                 <>
